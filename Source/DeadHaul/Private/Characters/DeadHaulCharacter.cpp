@@ -49,6 +49,11 @@ void ADeadHaulCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+	PlayerInputComponent->BindAxis("MoveForward", this, &ADeadHaulCharacter::MoveForward);
+	PlayerInputComponent->BindAxis("MoveRight", this, &ADeadHaulCharacter::MoveRight);
+	PlayerInputComponent->BindAxis("LookRight", this, &ADeadHaulCharacter::LookRight);
+	PlayerInputComponent->BindAxis("LookUp", this, &ADeadHaulCharacter::LookUp);
+
 }
 
 //----------------
@@ -75,3 +80,24 @@ UCameraComponent* ADeadHaulCharacter::GetPlayerCamera() const
 	return PlayerCamera;
 }
 
+void ADeadHaulCharacter::MoveForward(float Value)
+{
+	if (Value != 0.0f)
+		AddMovementInput(GetActorForwardVector(), Value);
+}
+
+void ADeadHaulCharacter::MoveRight(float Value)
+{
+	if (Value != 0.0f)
+		AddMovementInput(GetActorRightVector(), Value);
+}
+
+void ADeadHaulCharacter::LookRight(float Value)
+{
+	AddControllerYawInput(Value);
+}
+
+void ADeadHaulCharacter::LookUp(float Value)
+{
+	AddControllerPitchInput(Value);
+}

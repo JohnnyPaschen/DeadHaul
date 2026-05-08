@@ -35,6 +35,15 @@ protected:
 	UCameraComponent* PlayerCamera;
 
 	//----------------
+	// MOVEMENT
+	//----------------
+
+	void MoveForward(float Value);
+	void MoveRight(float Value);
+	void LookRight(float Value);
+	void LookUp(float Value);
+
+	//----------------
 	//COMPONENTS
 	//----------------
 
