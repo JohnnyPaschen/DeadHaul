@@ -22,6 +22,7 @@ class DEADHAUL_API UHotbarSlotWidget : public UUserWidget
 public:
     void UpdateSlot(const FPlayerInventoryItem& Item);
     void SetActive(bool bIsActive);
+    void SetSlotNumber(int32 SlotNumber);
 
 protected:
     UPROPERTY(meta = (BindWidget))
@@ -38,5 +39,8 @@ protected:
 
     UPROPERTY(EditAnywhere, Category = "Hotbar|Style")
     FLinearColor InactiveBorderColor = FLinearColor(0.1f, 0.1f, 0.1f, 0.7f);
+
+    UPROPERTY(meta = (BindWidget))
+    UTextBlock* SlotNumberText;
 	
 };

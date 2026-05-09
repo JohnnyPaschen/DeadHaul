@@ -45,3 +45,8 @@ void UHotbarSlotWidget::SetActive(bool bIsActive)
     SlotBorder->SetBrushColor(bIsActive ? ActiveBorderColor : InactiveBorderColor);
 }
 
+void UHotbarSlotWidget::SetSlotNumber(int32 SlotNumber)
+{
+    if (!SlotNumberText) return;
+    SlotNumberText->SetText(FText::AsNumber(SlotNumber));
+}

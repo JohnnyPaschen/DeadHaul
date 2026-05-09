@@ -60,6 +60,7 @@ void UHotbarWidget::BuildSlots()
         }
 
         SlotWidgets.Add(SlotWidget);
+        SlotWidget->SetSlotNumber(i + 1);
     }
 }
 
