@@ -8,7 +8,7 @@
 
 class USpringArmComponent;
 class UCameraComponent;
-//class UInventoryComponent;
+class UInventoryComponent;
 
 UCLASS()
 class DEADHAUL_API ADeadHaulCharacter : public ACharacter
@@ -47,8 +47,8 @@ protected:
 	//COMPONENTS
 	//----------------
 
-	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory")
-	//UInventoryComponent* InventoryComponent;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory")
+	UInventoryComponent* InventoryComponent;
 
 	//----------------
 	//STATS
@@ -66,6 +66,20 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Stats")
 	float CurrentStamina = 100.f;
 
+	//----------------
+	// INVENTORY HOTBAR INPUTS
+	//----------------
+
+	void ScrollHotbarUp();
+	void ScrollHotbarDown();
+
+	void SelectSlot1();
+	void SelectSlot2();
+	void SelectSlot3();
+	void SelectSlot4();
+	void SelectSlot5();
+	void SelectSlot6();
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -77,8 +91,8 @@ public:
 	//GETTERS
 	//----------------
 
-	//UFUNCTION(BlueprintCallable, Category = "Inventory")
-	//UInventoryComponent* GetInventoryComponent() const;
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	UInventoryComponent* GetInventoryComponent() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Stats")
 	float GetCurrentHealth() const;

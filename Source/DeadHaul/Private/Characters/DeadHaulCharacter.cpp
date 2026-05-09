@@ -4,6 +4,7 @@
 #include "Characters/DeadHaulCharacter.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
+#include "Inventory/InventoryComponent.h"
 
 
 // Sets default values
@@ -28,6 +29,11 @@ ADeadHaulCharacter::ADeadHaulCharacter()
 	PlayerCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("PlayerCamera"));
 	PlayerCamera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
 	PlayerCamera->bUsePawnControlRotation = false;
+
+	//----------------
+	// INVENTORY
+	//----------------
+	InventoryComponent = CreateDefaultSubobject<UInventoryComponent>(TEXT("InventoryComponent"));
 }
 
 // Called when the game starts or when spawned
@@ -49,10 +55,28 @@ void ADeadHaulCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+	//----------------
+	// MOVEMENT
+	//----------------
+
 	PlayerInputComponent->BindAxis("MoveForward", this, &ADeadHaulCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &ADeadHaulCharacter::MoveRight);
 	PlayerInputComponent->BindAxis("LookRight", this, &ADeadHaulCharacter::LookRight);
 	PlayerInputComponent->BindAxis("LookUp", this, &ADeadHaulCharacter::LookUp);
+
+	//----------------
+	// INVENTORY HOTBAR BUTTONS
+	//----------------
+
+	PlayerInputComponent->BindAction("HotbarScrollUp", IE_Pressed, this, &ADeadHaulCharacter::ScrollHotbarUp);
+	PlayerInputComponent->BindAction("HotbarScrollDown", IE_Pressed, this, &ADeadHaulCharacter::ScrollHotbarDown);
+
+	PlayerInputComponent->BindAction("HotbarSlot1", IE_Pressed, this, &ADeadHaulCharacter::SelectSlot1);
+	PlayerInputComponent->BindAction("HotbarSlot2", IE_Pressed, this, &ADeadHaulCharacter::SelectSlot2);
+	PlayerInputComponent->BindAction("HotbarSlot3", IE_Pressed, this, &ADeadHaulCharacter::SelectSlot3);
+	PlayerInputComponent->BindAction("HotbarSlot4", IE_Pressed, this, &ADeadHaulCharacter::SelectSlot4);
+	PlayerInputComponent->BindAction("HotbarSlot5", IE_Pressed, this, &ADeadHaulCharacter::SelectSlot5);
+	PlayerInputComponent->BindAction("HotbarSlot6", IE_Pressed, this, &ADeadHaulCharacter::SelectSlot6);
 
 }
 
@@ -60,10 +84,10 @@ void ADeadHaulCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 // GETTERS
 //----------------
 
-//UInventoryComponent* ADeadHaulCharacter::GetInventoryComponent() const
-//{
-//	return InventoryComponent;
-//}
+UInventoryComponent* ADeadHaulCharacter::GetInventoryComponent() const
+{
+	return InventoryComponent;
+}
 
 float ADeadHaulCharacter::GetCurrentHealth() const
 {
@@ -101,3 +125,27 @@ void ADeadHaulCharacter::LookUp(float Value)
 {
 	AddControllerPitchInput(Value);
 }
+
+
+//----------------
+// HOTBAR INPUT
+//----------------
+
+void ADeadHaulCharacter::ScrollHotbarUp()
+{
+	if (InventoryComponent)
+		InventoryComponent->CycleActiveSlot(-1);
+}
+
+void ADeadHaulCharacter::ScrollHotbarDown()
+{
+	if (InventoryComponent)
+		InventoryComponent->CycleActiveSlot(1);
+}
+
+void ADeadHaulCharacter::SelectSlot1() { if (InventoryComponent) InventoryComponent->SetActiveSlot(0); }
+void ADeadHaulCharacter::SelectSlot2() { if (InventoryComponent) InventoryComponent->SetActiveSlot(1); }
+void ADeadHaulCharacter::SelectSlot3() { if (InventoryComponent) InventoryComponent->SetActiveSlot(2); }
+void ADeadHaulCharacter::SelectSlot4() { if (InventoryComponent) InventoryComponent->SetActiveSlot(3); }
+void ADeadHaulCharacter::SelectSlot5() { if (InventoryComponent) InventoryComponent->SetActiveSlot(4); }
+void ADeadHaulCharacter::SelectSlot6() { if (InventoryComponent) InventoryComponent->SetActiveSlot(5); }
