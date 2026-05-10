@@ -6,20 +6,20 @@
 #include "Components/TextBlock.h"
 #include "Components/Border.h"
 
-void UHotbarSlotWidget::UpdateSlot(const FPlayerInventoryItem& Item)
+void UHotbarSlotWidget::UpdateSlot(const FPlayerInventoryItem& Item, const FItemDefinitionRow* Definition)
 {
     if (!ItemIcon || !QuantityText) return;
 
-    if (Item.IsEmpty())
+    if (Item.IsEmpty() || !Definition)
     {
         ItemIcon->SetVisibility(ESlateVisibility::Hidden);
         QuantityText->SetVisibility(ESlateVisibility::Hidden);
         return;
     }
 
-    if (Item.Icon)
+    if (Definition->Icon)
     {
-        ItemIcon->SetBrushFromTexture(Item.Icon);
+        ItemIcon->SetBrushFromTexture(Definition->Icon);
         ItemIcon->SetVisibility(ESlateVisibility::Visible);
     }
     else
@@ -28,7 +28,7 @@ void UHotbarSlotWidget::UpdateSlot(const FPlayerInventoryItem& Item)
     }
 
     //show quantity text if stackable and more than 1
-    if (Item.MaxStackSize > 1 && Item.Quantity > 1)
+    if (Definition->MaxStackSize > 1 && Item.Quantity > 1)
     {
         QuantityText->SetText(FText::AsNumber(Item.Quantity));
         QuantityText->SetVisibility(ESlateVisibility::Visible);
@@ -38,6 +38,7 @@ void UHotbarSlotWidget::UpdateSlot(const FPlayerInventoryItem& Item)
         QuantityText->SetVisibility(ESlateVisibility::Hidden);
     }
 }
+
 
 void UHotbarSlotWidget::SetActive(bool bIsActive)
 {

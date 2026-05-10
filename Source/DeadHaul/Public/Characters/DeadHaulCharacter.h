@@ -4,7 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Interfaces/InteractionInterface.h"
 #include "DeadHaulCharacter.generated.h"
+
 
 class USpringArmComponent;
 class UCameraComponent;
@@ -80,6 +82,15 @@ protected:
 	void SelectSlot5();
 	void SelectSlot6();
 
+	//----------------
+	// INTERACTION
+	//----------------
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction")
+	float InteractRange = 600.f;
+
+	void Interact();
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -102,5 +113,8 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Camera")
 	UCameraComponent* GetPlayerCamera() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Interaction")
+	AActor* GetFocusedInteractable() const;
 
 };

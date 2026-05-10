@@ -2,6 +2,8 @@
 
 
 #include "Inventory/InventoryComponent.h"
+#include "Inventory/ItemDefinition.h"
+#include "Engine/DataTable.h"
 
 // Sets default values for this component's properties
 UInventoryComponent::UInventoryComponent()
@@ -22,30 +24,44 @@ void UInventoryComponent::BeginPlay()
 	Slots.SetNum(HotbarSlots);
 }
 
+const FItemDefinitionRow* UInventoryComponent::GetItemDefinition(FName InItemID) const
+{
+    if (!ItemDatabase || InItemID == NAME_None) return nullptr;
+    return ItemDatabase->FindRow<FItemDefinitionRow>(InItemID, TEXT("UInventoryComponent::GetItemDefinition"));
+}
+
 bool UInventoryComponent::AddItem(FPlayerInventoryItem Item)
 {
     if (Item.IsEmpty()) return false;
 
+    const FItemDefinitionRow* Definition = GetItemDefinition(Item.ItemID);
+    if (!Definition)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("InventoryComponent: No item definition found for ID [%s]"), *Item.ItemID.ToString());
+        return false;
+    }
+
+    int32 MaxStack = Definition->MaxStackSize;
     int32 QuantityToAdd = Item.Quantity;
 
-    //try to stack into existing slots first
-    if (Item.MaxStackSize > 1)
+    // try to stack into existing slots first
+    if (MaxStack > 1)
     {
-        int32 StackableIndex = FindStackableSlot(Item.ItemID, Item.MaxStackSize);
+        int32 StackableIndex = FindStackableSlot(Item.ItemID, MaxStack);
         while (StackableIndex != -1 && QuantityToAdd > 0)
         {
             FPlayerInventoryItem& ExistingSlot = Slots[StackableIndex];
-            int32 SpaceInSlot = ExistingSlot.MaxStackSize - ExistingSlot.Quantity;
+            int32 SpaceInSlot = MaxStack - ExistingSlot.Quantity;
             int32 AmountToStack = FMath::Min(QuantityToAdd, SpaceInSlot);
 
             ExistingSlot.Quantity += AmountToStack;
             QuantityToAdd -= AmountToStack;
 
-            StackableIndex = FindStackableSlot(Item.ItemID, Item.MaxStackSize);
+            StackableIndex = FindStackableSlot(Item.ItemID, MaxStack);
         }
     }
 
-    //fill empty slots with any remainder of an item
+    // fill empty slots with any remainder
     while (QuantityToAdd > 0)
     {
         int32 EmptyIndex = FindEmptySlot();
@@ -56,7 +72,7 @@ bool UInventoryComponent::AddItem(FPlayerInventoryItem Item)
         }
 
         FPlayerInventoryItem NewSlotItem = Item;
-        NewSlotItem.Quantity = FMath::Min(QuantityToAdd, Item.MaxStackSize);
+        NewSlotItem.Quantity = FMath::Min(QuantityToAdd, MaxStack);
         Slots[EmptyIndex] = NewSlotItem;
         QuantityToAdd -= NewSlotItem.Quantity;
     }

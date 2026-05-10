@@ -73,7 +73,8 @@ void UHotbarWidget::RefreshAllSlots()
 
     for (int32 i = 0; i < SlotWidgets.Num() && i < HotbarCount && i < Slots.Num(); ++i)
     {
-        SlotWidgets[i]->UpdateSlot(Slots[i]);
+        const FItemDefinitionRow* Definition = InventoryComponent->GetItemDefinition(Slots[i].ItemID);
+        SlotWidgets[i]->UpdateSlot(Slots[i], Definition);
     }
 }
 

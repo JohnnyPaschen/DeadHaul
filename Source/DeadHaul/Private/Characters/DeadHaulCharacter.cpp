@@ -5,6 +5,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Inventory/InventoryComponent.h"
+#include "DrawDebugHelpers.h"
 
 
 // Sets default values
@@ -78,6 +79,12 @@ void ADeadHaulCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	PlayerInputComponent->BindAction("HotbarSlot5", IE_Pressed, this, &ADeadHaulCharacter::SelectSlot5);
 	PlayerInputComponent->BindAction("HotbarSlot6", IE_Pressed, this, &ADeadHaulCharacter::SelectSlot6);
 
+	//----------------
+	// INTERACTION
+	//----------------
+
+	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &ADeadHaulCharacter::Interact);
+
 }
 
 //----------------
@@ -149,3 +156,70 @@ void ADeadHaulCharacter::SelectSlot3() { if (InventoryComponent) InventoryCompon
 void ADeadHaulCharacter::SelectSlot4() { if (InventoryComponent) InventoryComponent->SetActiveSlot(3); }
 void ADeadHaulCharacter::SelectSlot5() { if (InventoryComponent) InventoryComponent->SetActiveSlot(4); }
 void ADeadHaulCharacter::SelectSlot6() { if (InventoryComponent) InventoryComponent->SetActiveSlot(5); }
+
+//----------------
+// INTERACTION
+//----------------
+
+AActor* ADeadHaulCharacter::GetFocusedInteractable() const
+{
+	if (!PlayerCamera) return nullptr;
+
+	const FVector Start = PlayerCamera->GetComponentLocation();
+	const FVector End = Start + PlayerCamera->GetForwardVector() * InteractRange;
+
+	FHitResult HitResult;
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(this);
+
+	const bool bHit = GetWorld()->LineTraceSingleByChannel(
+		HitResult,
+		Start,
+		End,
+		ECC_Visibility,
+		QueryParams
+	);
+
+	DrawDebugLine(
+		GetWorld(),
+		Start,
+		End,
+		FColor::Red,
+		false,
+		2.0f,
+		0,
+		2.0f
+	);
+
+	if (bHit && HitResult.GetActor())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Trace hit: %s"), *HitResult.GetActor()->GetName());
+
+		AActor* HitActor = HitResult.GetActor();
+		if (HitActor->GetClass()->ImplementsInterface(UInteractionInterface::StaticClass()))
+		{
+			return HitActor;
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Actor does not implement IInteractionInterface"));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Trace hit nothing"));
+	}
+
+	return nullptr;
+}
+
+void ADeadHaulCharacter::Interact()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Interact() called"));
+
+	AActor* FocusedActor = GetFocusedInteractable();
+	if (FocusedActor)
+	{
+		IInteractionInterface::Execute_Interact(FocusedActor, this);
+	}
+}

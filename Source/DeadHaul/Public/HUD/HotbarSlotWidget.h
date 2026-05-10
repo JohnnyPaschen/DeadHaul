@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "Inventory/InventoryItem.h"
+#include "Inventory/ItemDefinition.h"
 #include "HotbarSlotWidget.generated.h"
 
 class UImage;
@@ -20,7 +21,7 @@ class DEADHAUL_API UHotbarSlotWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
-    void UpdateSlot(const FPlayerInventoryItem& Item);
+    void UpdateSlot(const FPlayerInventoryItem& Item, const FItemDefinitionRow* Definition);
     void SetActive(bool bIsActive);
     void SetSlotNumber(int32 SlotNumber);
 
