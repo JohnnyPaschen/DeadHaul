@@ -6,6 +6,7 @@
 #include "Engine/DataTable.h"
 #include "GameFramework/Character.h"
 #include "Items/PickupActor.h"
+#include "Components/StaticMeshComponent.h"
 
 // Sets default values for this component's properties
 UInventoryComponent::UInventoryComponent()
@@ -243,6 +244,14 @@ void UInventoryComponent::DropActiveItem(ACharacter* Character)
     if (DroppedItem)
     {
         DroppedItem->InitializeFromDrop(ActiveSlot.ItemID, 1, ItemDatabase);
+
+        UStaticMeshComponent* Mesh = DroppedItem->FindComponentByClass<UStaticMeshComponent>();
+        if (Mesh && Mesh->IsSimulatingPhysics())
+        {
+            FVector LaunchDirection = Character->GetActorForwardVector() + FVector(0.f, 0.f, 0.3f);
+            LaunchDirection.Normalize();
+            Mesh->AddImpulse(LaunchDirection * 300.f, NAME_None, true);
+        }
 
         ActiveSlot.Quantity -= 1;
         if (ActiveSlot.Quantity <= 0)
