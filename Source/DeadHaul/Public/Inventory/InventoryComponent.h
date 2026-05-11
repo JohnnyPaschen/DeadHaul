@@ -9,6 +9,7 @@
 #include "InventoryComponent.generated.h"
 
 class UDataTable;
+class APickupActor;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInventoryUpdated);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnActiveSlotChanged, int32, NewSlotIndex);
@@ -84,6 +85,9 @@ public:
     int32 GetRemainingUpgrades() const;
 
     const FItemDefinitionRow* GetItemDefinition(FName InItemID) const;
+
+    UFUNCTION(BlueprintCallable, Category = "Inventory")
+    void DropActiveItem(ACharacter* Character);
 
     //----------------
     // GETTERS

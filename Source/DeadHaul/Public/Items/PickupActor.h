@@ -34,7 +34,11 @@ protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Pickup")
     UStaticMeshComponent* MeshComponent;
 
+    UPROPERTY(EditDefaultsOnly, Category = "Pickup")
+    TSubclassOf<APickupActor> PickupActorClass;
+
 public:
     virtual void Interact_Implementation(ACharacter* Interactor) override;
     virtual FText GetInteractPrompt_Implementation() const override;
+    void InitializeFromDrop(FName InItemID, int32 InQuantity, UDataTable* InItemDatabase);
 };

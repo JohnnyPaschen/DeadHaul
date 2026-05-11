@@ -58,3 +58,10 @@ FText APickupActor::GetInteractPrompt_Implementation() const
 
     return FText::Format(FText::FromString(TEXT("Pick up {0}")), Row->DisplayName);
 }
+
+void APickupActor::InitializeFromDrop(FName InItemID, int32 InQuantity, UDataTable* InItemDatabase)
+{
+    ItemID = InItemID;
+    Quantity = InQuantity;
+    ItemDatabase = InItemDatabase;
+}

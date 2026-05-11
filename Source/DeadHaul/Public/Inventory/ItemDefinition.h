@@ -7,6 +7,8 @@
 #include "Engine/Texture2D.h"
 #include "ItemDefinition.generated.h"
 
+class APickupActor;
+
 UENUM(BlueprintType)
 enum class EItemType : uint8
 {
@@ -35,4 +37,7 @@ struct DEADHAUL_API FItemDefinitionRow : public FTableRowBase
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item")
     UTexture2D* Icon = nullptr;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item")
+    TSubclassOf<APickupActor> PickupActorClass;
 };

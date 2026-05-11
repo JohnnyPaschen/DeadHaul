@@ -84,6 +84,7 @@ void ADeadHaulCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	//----------------
 
 	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &ADeadHaulCharacter::Interact);
+	PlayerInputComponent->BindAction("DropItem", IE_Pressed, this, &ADeadHaulCharacter::DropItem);
 
 }
 
@@ -222,4 +223,10 @@ void ADeadHaulCharacter::Interact()
 	{
 		IInteractionInterface::Execute_Interact(FocusedActor, this);
 	}
+}
+
+void ADeadHaulCharacter::DropItem()
+{
+	if (InventoryComponent)
+		InventoryComponent->DropActiveItem(this);
 }

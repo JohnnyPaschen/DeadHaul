@@ -4,6 +4,8 @@
 #include "Inventory/InventoryComponent.h"
 #include "Inventory/ItemDefinition.h"
 #include "Engine/DataTable.h"
+#include "GameFramework/Character.h"
+#include "Items/PickupActor.h"
 
 // Sets default values for this component's properties
 UInventoryComponent::UInventoryComponent()
@@ -213,4 +215,41 @@ int32 UInventoryComponent::FindEmptySlot() const
         }
     }
     return -1;
+}
+
+void UInventoryComponent::DropActiveItem(ACharacter* Character)
+{
+    if (!Character || !Slots.IsValidIndex(ActiveSlotIndex)) return;
+
+    FPlayerInventoryItem& ActiveSlot = Slots[ActiveSlotIndex];
+    if (ActiveSlot.IsEmpty()) return;
+
+    const FItemDefinitionRow* Definition = GetItemDefinition(ActiveSlot.ItemID);
+    if (!Definition || !Definition->PickupActorClass) return;
+
+    FVector DropLocation = Character->GetActorLocation() + Character->GetActorForwardVector() * 100.f;
+    DropLocation.Z += 50.f;
+
+    FActorSpawnParameters SpawnParams;
+    SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+    APickupActor* DroppedItem = Character->GetWorld()->SpawnActor<APickupActor>(
+        Definition->PickupActorClass,
+        DropLocation,
+        FRotator::ZeroRotator,
+        SpawnParams
+    );
+
+    if (DroppedItem)
+    {
+        DroppedItem->InitializeFromDrop(ActiveSlot.ItemID, 1, ItemDatabase);
+
+        ActiveSlot.Quantity -= 1;
+        if (ActiveSlot.Quantity <= 0)
+        {
+            ActiveSlot = FPlayerInventoryItem();
+        }
+
+        OnInventoryUpdated.Broadcast();
+    }
 }

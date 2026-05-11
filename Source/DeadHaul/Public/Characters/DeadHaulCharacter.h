@@ -10,7 +10,7 @@
 
 class USpringArmComponent;
 class UCameraComponent;
-class UInventoryComponent;
+class UInventoryComponent; 
 
 UCLASS()
 class DEADHAUL_API ADeadHaulCharacter : public ACharacter
@@ -90,6 +90,9 @@ protected:
 	float InteractRange = 600.f;
 
 	void Interact();
+
+	void DropItem();
+
 
 public:	
 	// Called every frame
