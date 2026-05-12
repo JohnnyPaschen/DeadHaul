@@ -7,6 +7,7 @@
 #include "DeadHaulHUD.generated.h"
 
 class UHotbarWidget;
+class UScrapValueWidget;
 
 /**
  * 
@@ -22,8 +23,14 @@ protected:
     UPROPERTY(EditDefaultsOnly, Category = "HUD")
     TSubclassOf<UHotbarWidget> HotbarWidgetClass;
 
+    UPROPERTY(EditDefaultsOnly, Category = "HUD")
+    TSubclassOf<UScrapValueWidget> ScrapValueWidgetClass;
+
 private:
     UPROPERTY()
     UHotbarWidget* HotbarWidget;
+
+    UPROPERTY()
+    UScrapValueWidget* ScrapValueWidget;
 	
 };

@@ -262,3 +262,20 @@ void UInventoryComponent::DropActiveItem(ACharacter* Character)
         OnInventoryUpdated.Broadcast();
     }
 }
+
+int32 UInventoryComponent::GetTotalScrapValue() const
+{
+    int32 Total = 0;
+
+    for (const FPlayerInventoryItem& Slot : Slots)
+    {
+        if (Slot.IsEmpty()) continue;
+
+        const FItemDefinitionRow* Definition = GetItemDefinition(Slot.ItemID);
+        if (!Definition) continue;
+
+        Total += Definition->ScrapValue * Slot.Quantity;
+    }
+
+    return Total;
+}

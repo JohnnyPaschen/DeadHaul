@@ -3,28 +3,13 @@
 
 #include "HUD/DeadHaulHUD.h"
 #include "HUD/HotbarWidget.h"
+#include "HUD/ScrapValueWidget.h"
 #include "Characters/DeadHaulCharacter.h"
 #include "Inventory/InventoryComponent.h"
 
 void ADeadHaulHUD::BeginPlay()
 {
     Super::BeginPlay();
-
-    if (!HotbarWidgetClass)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("DeadHaulHUD: HotbarWidgetClass is null!"));
-        return;
-    }
-
-    HotbarWidget = CreateWidget<UHotbarWidget>(GetWorld(), HotbarWidgetClass);
-    if (!HotbarWidget)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("DeadHaulHUD: Failed to create HotbarWidget!"));
-        return;
-    }
-
-    HotbarWidget->AddToViewport();
-    UE_LOG(LogTemp, Warning, TEXT("DeadHaulHUD: HotbarWidget added to viewport!"));
 
     ADeadHaulCharacter* Character = Cast<ADeadHaulCharacter>(GetOwningPawn());
     if (!Character)
@@ -33,12 +18,34 @@ void ADeadHaulHUD::BeginPlay()
         return;
     }
 
-    if (!Character->GetInventoryComponent())
+    UInventoryComponent* Inventory = Character->GetInventoryComponent();
+    if (!Inventory)
     {
         UE_LOG(LogTemp, Warning, TEXT("DeadHaulHUD: Failed to get InventoryComponent!"));
         return;
     }
 
-    HotbarWidget->InitializeHotbar(Character->GetInventoryComponent());
-    UE_LOG(LogTemp, Warning, TEXT("DeadHaulHUD: Hotbar initialized successfully!"));
+    //hotbar
+    if (HotbarWidgetClass)
+    {
+        HotbarWidget = CreateWidget<UHotbarWidget>(GetWorld(), HotbarWidgetClass);
+        if (HotbarWidget)
+        {
+            HotbarWidget->AddToViewport();
+            HotbarWidget->InitializeHotbar(Inventory);
+            UE_LOG(LogTemp, Warning, TEXT("DeadHaulHUD: Hotbar initialized successfully!"));
+        }
+    }
+
+    //scrap value
+    if (ScrapValueWidgetClass)
+    {
+        ScrapValueWidget = CreateWidget<UScrapValueWidget>(GetWorld(), ScrapValueWidgetClass);
+        if (ScrapValueWidget)
+        {
+            ScrapValueWidget->AddToViewport();
+            ScrapValueWidget->InitializeScrapWidget(Inventory);
+            UE_LOG(LogTemp, Warning, TEXT("DeadHaulHUD: ScrapValueWidget initialized successfully!"));
+        }
+    }
 }

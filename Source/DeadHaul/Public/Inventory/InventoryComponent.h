@@ -105,6 +105,9 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Inventory")
     int32 GetHotbarSlots() const { return HotbarSlots; }
 
+    UFUNCTION(BlueprintCallable, Category = "Inventory")
+    int32 GetTotalScrapValue() const;
+
 private:
     int32 FindStackableSlot(FName ItemID, int32 MaxStack) const;
     int32 FindEmptySlot() const;
