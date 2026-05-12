@@ -12,6 +12,9 @@ class USpringArmComponent;
 class UCameraComponent;
 class UInventoryComponent; 
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractableFocused, AActor*, FocusedActor);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInteractableLost);
+
 UCLASS()
 class DEADHAUL_API ADeadHaulCharacter : public ACharacter
 {
@@ -93,6 +96,9 @@ protected:
 
 	void DropItem();
 
+	UPROPERTY()
+	AActor* LastFocusedActor = nullptr;
+
 
 public:	
 	// Called every frame
@@ -120,4 +126,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
 	AActor* GetFocusedInteractable() const;
 
+	UPROPERTY(BlueprintAssignable, Category = "Interaction")
+	FOnInteractableFocused OnInteractableFocused;
+
+	UPROPERTY(BlueprintAssignable, Category = "Interaction")
+	FOnInteractableLost OnInteractableLost;
 };

@@ -4,6 +4,7 @@
 #include "HUD/DeadHaulHUD.h"
 #include "HUD/HotbarWidget.h"
 #include "HUD/ScrapValueWidget.h"
+#include "HUD/ReticleWidget.h"
 #include "Characters/DeadHaulCharacter.h"
 #include "Inventory/InventoryComponent.h"
 
@@ -46,6 +47,18 @@ void ADeadHaulHUD::BeginPlay()
             ScrapValueWidget->AddToViewport();
             ScrapValueWidget->InitializeScrapWidget(Inventory);
             UE_LOG(LogTemp, Warning, TEXT("DeadHaulHUD: ScrapValueWidget initialized successfully!"));
+        }
+    }
+
+    // reticle
+    if (ReticleWidgetClass)
+    {
+        ReticleWidget = CreateWidget<UReticleWidget>(GetWorld(), ReticleWidgetClass);
+        if (ReticleWidget)
+        {
+            ReticleWidget->AddToViewport();
+            ReticleWidget->InitializeReticle(Character);
+            UE_LOG(LogTemp, Warning, TEXT("DeadHaulHUD: ReticleWidget initialized successfully!"));
         }
     }
 }

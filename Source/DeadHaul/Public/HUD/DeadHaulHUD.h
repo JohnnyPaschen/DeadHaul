@@ -8,6 +8,7 @@
 
 class UHotbarWidget;
 class UScrapValueWidget;
+class UReticleWidget;
 
 /**
  * 
@@ -26,11 +27,17 @@ protected:
     UPROPERTY(EditDefaultsOnly, Category = "HUD")
     TSubclassOf<UScrapValueWidget> ScrapValueWidgetClass;
 
+    UPROPERTY(EditDefaultsOnly, Category = "HUD")
+    TSubclassOf<UReticleWidget> ReticleWidgetClass;
+
 private:
     UPROPERTY()
     UHotbarWidget* HotbarWidget;
 
     UPROPERTY()
     UScrapValueWidget* ScrapValueWidget;
+
+    UPROPERTY()
+    UReticleWidget* ReticleWidget;
 	
 };

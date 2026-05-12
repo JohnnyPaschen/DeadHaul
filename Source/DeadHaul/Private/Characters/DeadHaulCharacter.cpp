@@ -49,6 +49,22 @@ void ADeadHaulCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	AActor* CurrentFocused = GetFocusedInteractable();
+
+	if (CurrentFocused != LastFocusedActor)
+	{
+		if (CurrentFocused)
+		{
+			OnInteractableFocused.Broadcast(CurrentFocused);
+		}
+		else
+		{
+			OnInteractableLost.Broadcast();
+		}
+
+			LastFocusedActor = CurrentFocused;
+	}
+	
 }
 
 // Called to bind functionality to input
@@ -181,16 +197,16 @@ AActor* ADeadHaulCharacter::GetFocusedInteractable() const
 		QueryParams
 	);
 
-	DrawDebugLine(
-		GetWorld(),
-		Start,
-		End,
-		FColor::Red,
-		false,
-		2.0f,
-		0,
-		2.0f
-	);
+	//DrawDebugLine(
+	//	GetWorld(),
+	//	Start,
+	//	End,
+	//	FColor::Red,
+	//	false,
+	//	2.0f,
+	//	0,
+	//	2.0f
+	//);
 
 	if (bHit && HitResult.GetActor())
 	{
