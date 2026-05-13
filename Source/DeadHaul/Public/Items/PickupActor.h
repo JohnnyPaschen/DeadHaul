@@ -41,4 +41,7 @@ public:
     virtual void Interact_Implementation(ACharacter* Interactor) override;
     virtual FText GetInteractPrompt_Implementation() const override;
     void InitializeFromDrop(FName InItemID, int32 InQuantity, UDataTable* InItemDatabase);
+
+    // Returns the item's row name
+    FName GetItemID() const { return ItemID; }
 };

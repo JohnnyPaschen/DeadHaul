@@ -5,6 +5,7 @@
 #include "HUD/HotbarWidget.h"
 #include "HUD/ScrapValueWidget.h"
 #include "HUD/ReticleWidget.h"
+#include "HUD/InteractInfoWidget.h"
 #include "Characters/DeadHaulCharacter.h"
 #include "Inventory/InventoryComponent.h"
 
@@ -59,6 +60,18 @@ void ADeadHaulHUD::BeginPlay()
             ReticleWidget->AddToViewport();
             ReticleWidget->InitializeReticle(Character);
             UE_LOG(LogTemp, Warning, TEXT("DeadHaulHUD: ReticleWidget initialized successfully!"));
+        }
+    }
+
+    // interact info
+    if (InteractInfoWidgetClass)
+    {
+        InteractInfoWidget = CreateWidget<UInteractInfoWidget>(GetWorld(), InteractInfoWidgetClass);
+        if (InteractInfoWidget)
+        {
+            InteractInfoWidget->AddToViewport();
+            InteractInfoWidget->InitializeInteractInfo(Character, Inventory);
+            UE_LOG(LogTemp, Warning, TEXT("DeadHaulHUD: InteractInfoWidget initialized successfully!"));
         }
     }
 }
