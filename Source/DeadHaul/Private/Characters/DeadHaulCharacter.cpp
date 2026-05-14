@@ -2,7 +2,6 @@
 
 
 #include "Characters/DeadHaulCharacter.h"
-#include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Inventory/InventoryComponent.h"
 #include "DrawDebugHelpers.h"
@@ -14,22 +13,16 @@ ADeadHaulCharacter::ADeadHaulCharacter()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	//----------------
-	// SPRING ARM
-	//----------------
-
-	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
-	SpringArm->SetupAttachment(RootComponent);
-	SpringArm->TargetArmLength = 300.f;
-	SpringArm->bUsePawnControlRotation = true;
+	bUseControllerRotationYaw = true; // character body rotates with player look direction
 
 	//----------------
 	// CAMERA
 	//----------------
 
 	PlayerCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("PlayerCamera"));
-	PlayerCamera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
-	PlayerCamera->bUsePawnControlRotation = false;
+	PlayerCamera->SetupAttachment(RootComponent);
+	PlayerCamera->SetRelativeLocation(FVector(0.f, 0.f, 64.f)); // positions camera at eye height
+	PlayerCamera->bUsePawnControlRotation = true; // camera follows controller look direction
 
 	//----------------
 	// INVENTORY

@@ -8,7 +8,6 @@
 #include "DeadHaulCharacter.generated.h"
 
 
-class USpringArmComponent;
 class UCameraComponent;
 class UInventoryComponent; 
 
@@ -29,12 +28,10 @@ protected:
 	virtual void BeginPlay() override;
 
 
+
 	//----------------
 	//CAMERA
 	//----------------
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
-	USpringArmComponent* SpringArm;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	UCameraComponent* PlayerCamera;
@@ -90,7 +87,7 @@ protected:
 	//----------------
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction")
-	float InteractRange = 600.f;
+	float InteractRange = 450.f;
 
 	void Interact();
 
