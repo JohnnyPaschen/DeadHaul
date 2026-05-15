@@ -15,6 +15,8 @@ class DEADHAUL_API AFloorGenerator : public AActor
 public:	
 	AFloorGenerator();
 
+	virtual void BeginDestroy() override;
+
 	// ============================================
 	// Room Configuration Properties
 	// ============================================
@@ -26,10 +28,6 @@ public:
 	/** The class used to spawn the ending room of the floor */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation")
 	TSubclassOf<ARoomBase> EndRoomClass;
-
-	/** The class used to spawn dead-end rooms (rooms with only one connection) */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation")
-	TSubclassOf<ARoomBase> DeadEndRoomClass;
 
 	/** Pool of room data assets available for generation */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation")
@@ -115,7 +113,7 @@ private:
 		const FRotator& Rotation);
 
 	/** Attempts to attach a room to an open door connector */
-	bool TryAttachRoom(ADoorConnector* OpenDoor);
+	bool TryAttachRoom(ADoorConnector* OpenDoor, bool bDeadEndOnly = false);
 
 	/** Validates if a placement location is valid (no overlaps, etc) */
 	bool IsPlacementValid(const FVector& Center,

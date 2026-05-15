@@ -25,6 +25,9 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Room")
     ERoomType RoomType = ERoomType::Normal;
 
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Room")
+    bool bIsDeadEnd = false;
+
     // Higher = picked more often
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Room", meta = (ClampMin = 0.f))
     float SpawnWeight = 1.f;
