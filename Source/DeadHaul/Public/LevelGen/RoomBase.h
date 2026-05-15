@@ -21,11 +21,11 @@ public:
     TArray<class ADoorConnector*> DoorConnectors;
 
     // This room's type — used by the generator for placement rules
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Room")
-    ERoomType RoomType = ERoomType::Normal;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Room")
+	ERoomType RoomType = ERoomType::Normal;
 
     // Bounding box half-extents used for overlap checks
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Room")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Room")
     FVector RoomExtent = FVector(500.f, 500.f, 200.f);
 
     // Floor depth assigned by the generator (0 = start room)

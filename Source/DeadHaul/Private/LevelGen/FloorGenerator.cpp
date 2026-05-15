@@ -10,16 +10,26 @@
 // Sets default values
 AFloorGenerator::AFloorGenerator()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = false;
+    // Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+    PrimaryActorTick.bCanEverTick = false;
 
 }
 
 // Called when the game starts or when spawned
 void AFloorGenerator::BeginPlay()
 {
-	Super::BeginPlay();
-	
+    Super::BeginPlay();
+
+}
+
+void AFloorGenerator::BeginDestroy()
+{
+    SpawnCounts.Empty();
+    PlacedRooms.Empty();
+    StartRoom = nullptr;
+    EndRoom = nullptr;
+
+    Super::BeginDestroy();
 }
 
 void AFloorGenerator::GenerateFloor()
@@ -28,7 +38,7 @@ void AFloorGenerator::GenerateFloor()
 
     for (int32 Retry = 0; Retry < MaxRetries; Retry++)
     {
-		int32 RetryMinRooms = FMath::Max(3, MinMainPathLength + 2 - Retry);
+        int32 RetryMinRooms = FMath::Max(3, MinMainPathLength + 2 - Retry);
 
         GenerateFloorInternal();
         if (PlacedRooms.Num() >= RetryMinRooms)
@@ -79,7 +89,8 @@ void AFloorGenerator::GenerateFloorInternal()
         bool bExtended = false;
         for (ADoorConnector* ChosenDoor : OpenDoors)
         {
-            if (TryAttachRoom(ChosenDoor))
+            // Main path should never place dead ends
+            if (TryAttachRoom(ChosenDoor, /*bDeadEndOnly=*/false))
             {
                 CurrentRoom = PlacedRooms.Last();
                 bExtended = true;
@@ -113,7 +124,8 @@ void AFloorGenerator::GenerateFloorInternal()
 
         if (!CurrentDoor || CurrentDoor->bIsConnected) continue;
 
-        bool bPlaced = TryAttachRoom(CurrentDoor);
+        // Try a normal room first, fall back to a dead end
+        bool bPlaced = TryAttachRoom(CurrentDoor, /*bDeadEndOnly=*/false);
         if (bPlaced)
         {
             RoomsPlaced++;
@@ -126,18 +138,25 @@ void AFloorGenerator::GenerateFloorInternal()
         }
         else
         {
-            TryPlaceDeadEnd(CurrentDoor);
+            TryAttachRoom(CurrentDoor, /*bDeadEndOnly=*/true);
         }
     }
 
-    // Seal any remaining open doors
+    // Seal any remaining open doors — try a dead end first, then hard-seal
+    TArray<ADoorConnector*> DoorsToSeal;
     for (ARoomBase* Room : PlacedRooms)
     {
         for (ADoorConnector* Door : Room->GetOpenDoors())
         {
             if (!Door->bIsConnected)
-                TryPlaceDeadEnd(Door);
+                DoorsToSeal.Add(Door);
         }
+    }
+
+    for (ADoorConnector* Door : DoorsToSeal)
+    {
+		if (!Door || Door->bIsConnected) continue;
+        TryAttachRoom(Door, true);
     }
 
     UE_LOG(LogTemp, Log, TEXT("[FloorGen] Placed %d rooms"), PlacedRooms.Num());
@@ -146,48 +165,6 @@ void AFloorGenerator::GenerateFloorInternal()
     SealAllOpenDoors();
     ValidateConnectivity();
     OnFloorGenerated();
-}
-
-void AFloorGenerator::TryPlaceDeadEnd(ADoorConnector* OpenDoor)
-{
-    if (!DeadEndRoomClass || !OpenDoor || OpenDoor->bIsConnected) return;
-
-    ARoomBase* TestRoom = SpawnRoom(DeadEndRoomClass,
-        FVector::ZeroVector, FRotator::ZeroRotator);
-    if (!TestRoom) return;
-
-    TArray<ADoorConnector*> Doors = TestRoom->GetOpenDoors();
-    if (Doors.IsEmpty()) { TestRoom->Destroy(); return; }
-
-    FTransform T = ComputeRoomTransform(OpenDoor, Doors[0]);
-    TestRoom->Destroy();
-
-    ARoomBase* DeadEnd = SpawnRoom(DeadEndRoomClass,
-        T.GetLocation(), T.Rotator());
-    if (!DeadEnd) return;
-
-    // Dead ends are small so skip overlap check and place it
-    ADoorConnector* MatchingDoor = nullptr;
-    float MinDist = FLT_MAX;
-    for (ADoorConnector* D : DeadEnd->DoorConnectors)
-    {
-        if (!D) continue;
-        float Dist = FVector::Dist(D->GetActorLocation(), OpenDoor->GetActorLocation());
-        if (Dist < MinDist) { MinDist = Dist; MatchingDoor = D; }
-    }
-
-    if (MatchingDoor)
-    {
-        OpenDoor->bIsConnected = true;
-        MatchingDoor->bIsConnected = true;
-        OpenDoor->LinkedConnector = MatchingDoor;
-        MatchingDoor->LinkedConnector = OpenDoor;
-        MatchingDoor->OwningRoom = DeadEnd;
-    }
-
-    DeadEnd->FloorDepth = OpenDoor->OwningRoom ? OpenDoor->OwningRoom->FloorDepth + 1 : 1;
-    DeadEnd->OnRoomPlaced();
-    PlacedRooms.Add(DeadEnd);
 }
 
 void AFloorGenerator::ClearFloor()
@@ -219,17 +196,22 @@ ARoomBase* AFloorGenerator::SpawnRoom(TSubclassOf<ARoomBase> RoomClass,
     return GetWorld()->SpawnActor<ARoomBase>(RoomClass, Location, Rotation, Params);
 }
 
-bool AFloorGenerator::TryAttachRoom(ADoorConnector* OpenDoor)
+bool AFloorGenerator::TryAttachRoom(ADoorConnector* OpenDoor, bool bDeadEndOnly)
 {
     if (!OpenDoor || OpenDoor->bIsConnected) return false;
 
-    // Build weighted candidate list
+    // Build weighted candidate list, filtered by bDeadEndOnly if requested
     TArray<URoomDataAsset*> Candidates;
     int32 OwnerDepth = OpenDoor->OwningRoom ? OpenDoor->OwningRoom->FloorDepth : 0;
 
     for (URoomDataAsset* DA : RoomPool)
     {
         if (!DA || !DA->RoomClass) continue;
+
+        // Filter to dead ends only when sealing, or exclude them on main path/fill
+        if (bDeadEndOnly && DA->RoomType != ERoomType::DeadEnd) continue;
+        if (!bDeadEndOnly && DA->RoomType == ERoomType::DeadEnd) continue;
+
         if (OwnerDepth < DA->MinDepth) continue;
 
         if (DA->MaxInstances >= 0)
@@ -246,9 +228,12 @@ bool AFloorGenerator::TryAttachRoom(ADoorConnector* OpenDoor)
 
     if (Candidates.IsEmpty())
     {
-        UE_LOG(LogTemp, Warning, TEXT("[FloorGen] No candidates available to attach to door %s!"),
-            *OpenDoor->OwningRoom->GetName());
-		return false;
+        if (!bDeadEndOnly)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("[FloorGen] No candidates available to attach to door on %s!"),
+                *OpenDoor->OwningRoom->GetName());
+        }
+        return false;
     }
 
     // Shuffle candidates
@@ -284,13 +269,13 @@ bool AFloorGenerator::TryAttachRoom(ADoorConnector* OpenDoor)
         FTransform PlacementTransform = ComputeRoomTransform(OpenDoor, IncomingDoor);
         TestRoom->Destroy();
 
-		// Spawn at position and check for overlaps
+        // Spawn at position and check for overlaps
         ARoomBase* NewRoom = SpawnRoom(DA->RoomClass,
             PlacementTransform.GetLocation(),
             PlacementTransform.Rotator());
         if (!NewRoom) continue;
 
-        if (!IsPlacementValid(PlacementTransform.GetLocation(),
+        if (!bDeadEndOnly && !IsPlacementValid(PlacementTransform.GetLocation(),
             NewRoom->RoomExtent,
             PlacementTransform.Rotator()))
         {
@@ -340,6 +325,8 @@ bool AFloorGenerator::TryAttachRoom(ADoorConnector* OpenDoor)
 bool AFloorGenerator::IsPlacementValid(const FVector& Center,
     const FVector& Extent, const FRotator& Rotation)
 {
+	DrawDebugBox(GetWorld(), Center, Extent * 0.9f, FQuat(Rotation), FColor::Red, true, 30.f); // visualize placement area
+
     FBox NewBox = FBox::BuildAABB(Center, Extent * 0.9f);
 
     for (ARoomBase* Room : PlacedRooms)
@@ -499,4 +486,3 @@ bool AFloorGenerator::ValidateConnectivity()
     UE_LOG(LogTemp, Log, TEXT("[FloorGen] Connectivity check passed."));
     return true;
 }
-
