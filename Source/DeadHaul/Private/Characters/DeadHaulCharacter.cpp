@@ -25,7 +25,7 @@ ADeadHaulCharacter::ADeadHaulCharacter()
 
 	PlayerCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("PlayerCamera"));
 	PlayerCamera->SetupAttachment(RootComponent);
-	PlayerCamera->SetRelativeLocation(FVector(0.f, 0.f, 64.f)); // positions camera at eye height
+	PlayerCamera->SetRelativeLocation(FVector(0.f, 0.f, 0.f));// positions camera at eye height
 	PlayerCamera->bUsePawnControlRotation = true; // camera follows controller look direction
 
 	//----------------
@@ -38,7 +38,6 @@ ADeadHaulCharacter::ADeadHaulCharacter()
 void ADeadHaulCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 // Called every frame
@@ -63,10 +62,18 @@ void ADeadHaulCharacter::Tick(float DeltaTime)
 	}
 
 	// Move camera to crouched or standing height
-	float TargetCameraZ = bIsCrouching ? CrouchingCameraZ : StandingCameraZ;
-	FVector CurrentCameraLocation = PlayerCamera->GetRelativeLocation();
-	float NewZ = FMath::FInterpTo(CurrentCameraLocation.Z, TargetCameraZ, DeltaTime, CrouchCameraInterpSpeed);
-	PlayerCamera->SetRelativeLocation(FVector(15.f, 0.f, 80.f));
+	//float TargetCameraZ = bIsCrouching ? CrouchingCameraZ : StandingCameraZ;
+	//FVector CurrentCameraLocation = PlayerCamera->GetRelativeLocation();
+	//float NewZ = FMath::FInterpTo(CurrentCameraLocation.Z, TargetCameraZ, DeltaTime, CrouchCameraInterpSpeed);
+	//PlayerCamera->SetRelativeLocation(FVector(15.f, 0.f, 80.f));
+
+	if (GetMesh())
+	{
+		PlayerCamera->AttachToComponent(GetMesh(),
+			FAttachmentTransformRules::SnapToTargetNotIncludingScale,
+			FName("Head"));
+		PlayerCamera->SetRelativeLocation(FVector(0.f, -10.f, 18.f));
+	}
 	
 }
 
@@ -255,6 +262,7 @@ void ADeadHaulCharacter::DropItem()
 
 void ADeadHaulCharacter::StartCrouch()
 {
+	UE_LOG(LogTemp, Warning, TEXT("StartCrouch called"));
 	bIsCrouching = true;
 	Crouch();
 }
