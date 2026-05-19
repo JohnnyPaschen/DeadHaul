@@ -96,6 +96,25 @@ protected:
 	UPROPERTY()
 	AActor* LastFocusedActor = nullptr;
 
+	//----------------
+	// CROUCH
+	//----------------
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+	float StandingCameraZ = 80.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+	float CrouchingCameraZ = 40.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+	float CrouchCameraInterpSpeed = 2.5f;
+
+	void StartCrouch();
+	void StopCrouch();
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
+	bool bIsCrouching = false;
+
 
 public:	
 	// Called every frame

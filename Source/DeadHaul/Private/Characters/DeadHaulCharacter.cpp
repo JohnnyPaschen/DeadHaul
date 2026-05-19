@@ -5,6 +5,7 @@
 #include "Camera/CameraComponent.h"
 #include "Inventory/InventoryComponent.h"
 #include "DrawDebugHelpers.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 
 // Sets default values
@@ -12,6 +13,9 @@ ADeadHaulCharacter::ADeadHaulCharacter()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+
+	// enable crouching on the character movement component
+	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
 
 	bUseControllerRotationYaw = true; // character body rotates with player look direction
 
@@ -57,6 +61,12 @@ void ADeadHaulCharacter::Tick(float DeltaTime)
 
 			LastFocusedActor = CurrentFocused;
 	}
+
+	// Move camera to crouched or standing height
+	float TargetCameraZ = bIsCrouching ? CrouchingCameraZ : StandingCameraZ;
+	FVector CurrentCameraLocation = PlayerCamera->GetRelativeLocation();
+	float NewZ = FMath::FInterpTo(CurrentCameraLocation.Z, TargetCameraZ, DeltaTime, CrouchCameraInterpSpeed);
+	PlayerCamera->SetRelativeLocation(FVector(15.f, 0.f, 80.f));
 	
 }
 
@@ -94,6 +104,9 @@ void ADeadHaulCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &ADeadHaulCharacter::Interact);
 	PlayerInputComponent->BindAction("DropItem", IE_Pressed, this, &ADeadHaulCharacter::DropItem);
+
+	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &ADeadHaulCharacter::StartCrouch);
+	PlayerInputComponent->BindAction("Crouch", IE_Released, this, &ADeadHaulCharacter::StopCrouch);
 
 }
 
@@ -238,4 +251,16 @@ void ADeadHaulCharacter::DropItem()
 {
 	if (InventoryComponent)
 		InventoryComponent->DropActiveItem(this);
+}
+
+void ADeadHaulCharacter::StartCrouch()
+{
+	bIsCrouching = true;
+	Crouch();
+}
+
+void ADeadHaulCharacter::StopCrouch()
+{
+	bIsCrouching = false;
+	UnCrouch();
 }
