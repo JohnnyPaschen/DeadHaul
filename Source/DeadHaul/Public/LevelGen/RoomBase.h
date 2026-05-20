@@ -24,34 +24,51 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Room")
 	ERoomType RoomType = ERoomType::Normal;
 
-    // Bounding box half-extents used for overlap checks
+	// Bounding box half-extents used for overlap checks
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Room")
-    FVector RoomExtent = FVector(500.f, 500.f, 200.f);
+	FVector RoomExtent = FVector(500.f, 500.f, 200.f);
 
-    // Floor depth assigned by the generator (0 = start room)
-    UPROPERTY(BlueprintReadWrite, Category = "Room")
-    int32 FloorDepth = 0;
+	UPROPERTY(BlueprintReadWrite, Category = "Room")
+	 class URoomDataAsset* RoomData = nullptr;
+
+	// Whether to visualize the room extent in the editor
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Room")
+	bool bVisualizeBounds = true;
+
+	// Color for the room extent visualization
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Room", meta = (EditCondition = "bVisualizeBounds"))
+	FColor BoundsVisualizationColor = FColor::Green;
+
+	// Floor depth assigned by the generator (0 = start room)
+	UPROPERTY(BlueprintReadWrite, Category = "Room")
+	int32 FloorDepth = 0;
 
     // Called by the generator after this room is successfully placed
     UFUNCTION(BlueprintNativeEvent, Category = "Room")
     void OnRoomPlaced();
-    virtual void OnRoomPlaced_Implementation() {}
+	virtual void OnRoomPlaced_Implementation();
 
     // Called at end of generation — seal any doors that never got connected
     UFUNCTION(BlueprintNativeEvent, Category = "Room")
     void SealOpenDoors();
     virtual void SealOpenDoors_Implementation();
 
-    // Returns only the unconnected door connectors
-    UFUNCTION(BlueprintCallable, Category = "Room")
-    TArray<ADoorConnector*> GetOpenDoors() const;
+	// Returns only the unconnected door connectors
+	UFUNCTION(BlueprintCallable, Category = "Room")
+	TArray<ADoorConnector*> GetOpenDoors() const;
+
+	// Collects all door connectors that are part of this room
+	UFUNCTION(BlueprintCallable, Category = "Room")
+	void CollectDoorConnectors();
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	// Called when properties are modified in the editor
+	virtual void OnConstruction(const FTransform& Transform) override;
+
 private:
-	// Finds all door connectors that are part of this room and adds them to the DoorConnectors array
-	void CollectDoorConnectors();
+	void ApplyMaterials();
 
 };

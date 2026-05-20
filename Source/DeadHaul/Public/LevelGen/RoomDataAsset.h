@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
 #include "LevelGen/FloorGenTypes.h"
-#include "LevelGen/RoomBase.h"
 #include "RoomDataAsset.generated.h"
 
 /**
@@ -19,7 +18,7 @@ class DEADHAUL_API URoomDataAsset : public UPrimaryDataAsset
 public:
     // The room Blueprint to spawn
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Room")
-    TSubclassOf<ARoomBase> RoomClass;
+    TSubclassOf<class ARoomBase> RoomClass;
 
 	// Used by the generator to apply special placement rules (e.g. only place corridors between start and end)
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Room")
@@ -39,5 +38,11 @@ public:
     // Max times this room can appear on one floor (-1 = unlimited)
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Room")
     int32 MaxInstances = -1;
+
+    UPROPERTY(EditAnywhere, Category = "Spawning")
+    TObjectPtr<UMaterialInterface> FloorMaterial;
+
+    UPROPERTY(EditAnywhere, Category = "Spawning")
+    TObjectPtr<UMaterialInterface> WallMaterial;
 	
 };

@@ -67,6 +67,7 @@ void AFloorGenerator::GenerateFloorInternal()
         UE_LOG(LogTemp, Error, TEXT("[FloorGen] Failed to spawn StartRoom!"));
         return;
     }
+    StartRoom->CollectDoorConnectors();
     StartRoom->FloorDepth = 0;
     PlacedRooms.Add(StartRoom);
 
@@ -136,35 +137,37 @@ void AFloorGenerator::GenerateFloorInternal()
                     OpenDoorQueue.Enqueue(NewDoor);
             }
         }
-        else
-        {
-            TryAttachRoom(CurrentDoor, /*bDeadEndOnly=*/true);
-        }
-    }
+			 else
+			{
+				TryAttachRoom(CurrentDoor, /*bDeadEndOnly=*/true);
+			}
+		}
 
-    // Seal any remaining open doors — try a dead end first, then hard-seal
-    TArray<ADoorConnector*> DoorsToSeal;
-    for (ARoomBase* Room : PlacedRooms)
-    {
-        for (ADoorConnector* Door : Room->GetOpenDoors())
-        {
-            if (!Door->bIsConnected)
-                DoorsToSeal.Add(Door);
-        }
-    }
+		UE_LOG(LogTemp, Log, TEXT("[FloorGen] Placed %d rooms"), PlacedRooms.Num());
 
-    for (ADoorConnector* Door : DoorsToSeal)
-    {
-		if (!Door || Door->bIsConnected) continue;
-        TryAttachRoom(Door, true);
-    }
+		// Place the end room BEFORE sealing remaining doors
+		PlaceEndRoom();
 
-    UE_LOG(LogTemp, Log, TEXT("[FloorGen] Placed %d rooms"), PlacedRooms.Num());
+		// Seal any remaining open doors — try a dead end first, then hard-seal
+		TArray<ADoorConnector*> DoorsToSeal;
+		for (ARoomBase* Room : PlacedRooms)
+		{
+			for (ADoorConnector* Door : Room->GetOpenDoors())
+			{
+				if (!Door->bIsConnected)
+					DoorsToSeal.Add(Door);
+			}
+		}
 
-    PlaceEndRoom();
-    SealAllOpenDoors();
-    ValidateConnectivity();
-    OnFloorGenerated();
+		for (ADoorConnector* Door : DoorsToSeal)
+		{
+			if (!Door || Door->bIsConnected) continue;
+			TryAttachRoom(Door, true);
+		}
+
+		SealAllOpenDoors();
+		ValidateConnectivity();
+		OnFloorGenerated();
 }
 
 void AFloorGenerator::ClearFloor()
@@ -255,6 +258,7 @@ bool AFloorGenerator::TryAttachRoom(ADoorConnector* OpenDoor, bool bDeadEndOnly)
             FRotator::ZeroRotator);
         if (!TestRoom) continue;
 
+        TestRoom->CollectDoorConnectors();
         TArray<ADoorConnector*> IncomingOptions = TestRoom->GetOpenDoors();
         if (IncomingOptions.IsEmpty())
         {
@@ -274,6 +278,9 @@ bool AFloorGenerator::TryAttachRoom(ADoorConnector* OpenDoor, bool bDeadEndOnly)
             PlacementTransform.GetLocation(),
             PlacementTransform.Rotator());
         if (!NewRoom) continue;
+
+        // Collect doors from the new room
+        NewRoom->CollectDoorConnectors();
 
         if (!bDeadEndOnly && !IsPlacementValid(PlacementTransform.GetLocation(),
             NewRoom->RoomExtent,
@@ -308,6 +315,7 @@ bool AFloorGenerator::TryAttachRoom(ADoorConnector* OpenDoor, bool bDeadEndOnly)
         }
 
         NewRoom->FloorDepth = OwnerDepth + 1;
+        NewRoom->RoomData = DA;
         NewRoom->OnRoomPlaced();
         SpawnCounts.FindOrAdd(DA)++;
         PlacedRooms.Add(NewRoom);
@@ -325,8 +333,6 @@ bool AFloorGenerator::TryAttachRoom(ADoorConnector* OpenDoor, bool bDeadEndOnly)
 bool AFloorGenerator::IsPlacementValid(const FVector& Center,
     const FVector& Extent, const FRotator& Rotation)
 {
-	DrawDebugBox(GetWorld(), Center, Extent * 0.9f, FQuat(Rotation), FColor::Red, true, 30.f); // visualize placement area
-
     FBox NewBox = FBox::BuildAABB(Center, Extent * 0.9f);
 
     for (ARoomBase* Room : PlacedRooms)
@@ -364,7 +370,11 @@ FTransform AFloorGenerator::ComputeRoomTransform(ADoorConnector* OpenDoor,
 
 void AFloorGenerator::PlaceEndRoom()
 {
-    if (!EndRoomClass) return;
+    if (!EndRoomClass) 
+    {
+        UE_LOG(LogTemp, Warning, TEXT("[FloorGen] PlaceEndRoom: EndRoomClass is not set!"));
+        return;
+    }
 
     // Find deepest open door across all placed rooms
     ADoorConnector* DeepestDoor = nullptr;
@@ -372,35 +382,69 @@ void AFloorGenerator::PlaceEndRoom()
 
     for (ARoomBase* Room : PlacedRooms)
     {
-        for (ADoorConnector* Door : Room->GetOpenDoors())
+        if (Room->FloorDepth > MaxDepth)
         {
-            if (Room->FloorDepth > MaxDepth)
+            TArray<ADoorConnector*> OpenDoors = Room->GetOpenDoors();
+            if (!OpenDoors.IsEmpty())
             {
                 MaxDepth = Room->FloorDepth;
-                DeepestDoor = Door;
+                DeepestDoor = OpenDoors[0];
             }
         }
     }
 
-    if (!DeepestDoor) return;
+    if (!DeepestDoor) 
+    {
+        UE_LOG(LogTemp, Warning, TEXT("[FloorGen] PlaceEndRoom: No open doors found for end room placement!"));
+        return;
+    }
+
+    UE_LOG(LogTemp, Log, TEXT("[FloorGen] PlaceEndRoom: Found deepest door at depth %d"), MaxDepth);
 
     ARoomBase* TestEnd = SpawnRoom(EndRoomClass, FVector::ZeroVector, FRotator::ZeroRotator);
-    if (!TestEnd) return;
+    if (!TestEnd) 
+    {
+        UE_LOG(LogTemp, Error, TEXT("[FloorGen] PlaceEndRoom: Failed to spawn test end room!"));
+        return;
+    }
 
+    // Collect doors from the test room
+    TestEnd->CollectDoorConnectors();
     TArray<ADoorConnector*> EndDoors = TestEnd->GetOpenDoors();
-    if (EndDoors.IsEmpty()) { TestEnd->Destroy(); return; }
+    if (EndDoors.IsEmpty()) 
+    {
+        UE_LOG(LogTemp, Warning, TEXT("[FloorGen] PlaceEndRoom: End room has no doors!"));
+        TestEnd->Destroy(); 
+        return; 
+    }
 
     FTransform PlacementTransform = ComputeRoomTransform(DeepestDoor, EndDoors[0]);
     TestEnd->Destroy();
 
+    // Check if placement is valid before spawning the final end room
+    if (!IsPlacementValid(PlacementTransform.GetLocation(), 
+        TestEnd->RoomExtent, 
+        PlacementTransform.Rotator()))
+    {
+        UE_LOG(LogTemp, Warning, TEXT("[FloorGen] PlaceEndRoom: End room placement failed overlap check, spawning anyway (forced placement)"));
+    }
+
     EndRoom = SpawnRoom(EndRoomClass,
         PlacementTransform.GetLocation(),
         PlacementTransform.Rotator());
-    if (!EndRoom) return;
+    if (!EndRoom) 
+    {
+        UE_LOG(LogTemp, Error, TEXT("[FloorGen] PlaceEndRoom: Failed to spawn final end room!"));
+        return;
+    }
 
+    // Collect doors from the final end room
+    EndRoom->CollectDoorConnectors();
     EndRoom->FloorDepth = MaxDepth + 1;
     EndRoom->OnRoomPlaced();
     PlacedRooms.Add(EndRoom);
+
+    UE_LOG(LogTemp, Log, TEXT("[FloorGen] PlaceEndRoom: Successfully placed end room at depth %d"), EndRoom->FloorDepth);
 
     // Find the end room's door closest to DeepestDoor and link them
     ADoorConnector* MatchingDoor = nullptr;

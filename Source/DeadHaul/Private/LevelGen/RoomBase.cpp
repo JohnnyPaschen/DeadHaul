@@ -3,6 +3,7 @@
 
 #include "LevelGen/RoomBase.h"
 #include "DrawDebugHelpers.h"
+#include "LevelGen/RoomDataAsset.h"
 #include "LevelGen/DoorConnector.h"
 
 // Sets default values
@@ -16,6 +17,17 @@ void ARoomBase::BeginPlay()
 {
 	Super::BeginPlay();
 	CollectDoorConnectors();
+}
+
+void ARoomBase::OnConstruction(const FTransform& Transform)
+{
+	Super::OnConstruction(Transform);
+
+	if (bVisualizeBounds)
+	{
+		// Draw the room extent box in the editor
+		//DrawDebugBox(GetWorld(), GetActorLocation(), RoomExtent, BoundsVisualizationColor, true, -1.0f, 0);
+	}
 }
 
 void ARoomBase::CollectDoorConnectors()
@@ -64,4 +76,26 @@ TArray<ADoorConnector*> ARoomBase::GetOpenDoors() const
 void ARoomBase::SealOpenDoors_Implementation()
 {
     
+}
+
+void ARoomBase::OnRoomPlaced_Implementation()
+{
+    ApplyMaterials();
+}
+
+void ARoomBase::ApplyMaterials()
+{
+    if (!RoomData) return;
+
+    TArray<UStaticMeshComponent*> Meshes;
+    GetComponents<UStaticMeshComponent>(Meshes);
+
+    for (UStaticMeshComponent* Mesh : Meshes)
+    {
+        if (Mesh->ComponentHasTag("Floor") && RoomData->FloorMaterial)
+            Mesh->SetMaterial(0, RoomData->FloorMaterial);
+
+        if (Mesh->ComponentHasTag("Wall") && RoomData->WallMaterial)
+            Mesh->SetMaterial(0, RoomData->WallMaterial);
+    }
 }
