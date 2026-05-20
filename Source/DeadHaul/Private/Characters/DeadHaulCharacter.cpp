@@ -17,6 +17,9 @@ ADeadHaulCharacter::ADeadHaulCharacter()
 	// enable crouching on the character movement component
 	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
 
+	//slow the player down while crouching
+	GetCharacterMovement()->MaxWalkSpeedCrouched = 175.f;
+
 	bUseControllerRotationYaw = true; // character body rotates with player look direction
 
 	//----------------

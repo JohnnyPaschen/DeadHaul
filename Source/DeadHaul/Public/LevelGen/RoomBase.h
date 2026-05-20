@@ -7,6 +7,8 @@
 #include "LevelGen/FloorGenTypes.h"
 #include "RoomBase.generated.h"
 
+class URoomDataAsset;
+
 UCLASS(BlueprintType, Blueprintable)
 class DEADHAUL_API ARoomBase : public AActor
 {
