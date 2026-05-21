@@ -69,6 +69,34 @@ protected:
 	float CurrentStamina = 100.f;
 
 	//----------------
+	// SPRINT
+	//----------------
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+	float SprintSpeed = 960.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+	float WalkSpeed = 600.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stamina")
+	float StaminaDrainRate = 20.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stamina")
+	float StaminaRegenRate = 10.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stamina")
+	float ExhaustionCooldown = 2.f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
+	bool bIsSprinting = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Stamina")
+	bool bIsExhausted = false;
+
+	void StartSprint();
+	void StopSprint();
+
+	//----------------
 	// INVENTORY HOTBAR INPUTS
 	//----------------
 
@@ -133,7 +161,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Stats")
 	float GetCurrentHealth() const;
 
-	UFUNCTION(BlueprintCallable, Category = "Stats")
+	UFUNCTION(BlueprintCallable, Category = "Stamina")
 	float GetCurrentStamina() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Camera")
@@ -147,4 +175,19 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Interaction")
 	FOnInteractableLost OnInteractableLost;
+
+	UFUNCTION(BlueprintCallable, Category = "Stamina")
+	float GetMaxStamina() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Stamina")
+	bool GetIsExhausted() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Movement")
+	bool GetIsSprinting() const;
+
+private:
+	// Tracks how long we've been in exhaustion cooldown
+	float ExhaustionTimer = 0.f;
+
+	void HandleStaminaTick(float DeltaTime);
 };

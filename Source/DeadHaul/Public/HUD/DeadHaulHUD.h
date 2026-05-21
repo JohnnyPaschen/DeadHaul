@@ -10,6 +10,7 @@ class UHotbarWidget;
 class UScrapValueWidget;
 class UReticleWidget;
 class UInteractInfoWidget;
+class UStaminaBarWidget;
 
 /**
  * 
@@ -34,6 +35,9 @@ protected:
     UPROPERTY(EditDefaultsOnly, Category = "HUD")
     TSubclassOf<UInteractInfoWidget> InteractInfoWidgetClass;
 
+    UPROPERTY(EditDefaultsOnly, Category = "HUD")
+    TSubclassOf<UStaminaBarWidget> StaminaBarWidgetClass;
+
 private:
     UPROPERTY()
     UHotbarWidget* HotbarWidget;
@@ -46,5 +50,7 @@ private:
 
     UPROPERTY()
     UInteractInfoWidget* InteractInfoWidget;
-	
+
+    UPROPERTY()
+    UStaminaBarWidget* StaminaBarWidget;
 };

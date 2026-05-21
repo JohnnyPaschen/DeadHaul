@@ -6,8 +6,10 @@
 #include "HUD/ScrapValueWidget.h"
 #include "HUD/ReticleWidget.h"
 #include "HUD/InteractInfoWidget.h"
+#include "HUD/StaminaBarWidget.h"
 #include "Characters/DeadHaulCharacter.h"
 #include "Inventory/InventoryComponent.h"
+
 
 void ADeadHaulHUD::BeginPlay()
 {
@@ -74,4 +76,21 @@ void ADeadHaulHUD::BeginPlay()
             UE_LOG(LogTemp, Warning, TEXT("DeadHaulHUD: InteractInfoWidget initialized successfully!"));
         }
     }
+
+    // stamina bar
+    if (StaminaBarWidgetClass)
+    {
+        StaminaBarWidget = CreateWidget<UStaminaBarWidget>(GetWorld(), StaminaBarWidgetClass);
+        if (StaminaBarWidget)
+        {
+            StaminaBarWidget->AddToViewport();
+            StaminaBarWidget->InitializeStaminaBar(Character);
+            UE_LOG(LogTemp, Warning, TEXT("DeadHaulHUD: StaminaBarWidget initialized successfully!"));
+        }
+    }
+}
+
+bool ADeadHaulCharacter::GetIsSprinting() const
+{
+    return bIsSprinting;
 }

@@ -20,6 +20,8 @@ ADeadHaulCharacter::ADeadHaulCharacter()
 	//slow the player down while crouching
 	GetCharacterMovement()->MaxWalkSpeedCrouched = 175.f;
 
+	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+
 	bUseControllerRotationYaw = true; // character body rotates with player look direction
 
 	//----------------
@@ -47,6 +49,7 @@ void ADeadHaulCharacter::BeginPlay()
 void ADeadHaulCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	HandleStaminaTick(DeltaTime);
 
 	AActor* CurrentFocused = GetFocusedInteractable();
 
@@ -121,6 +124,9 @@ void ADeadHaulCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	// Jump input
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	
+	// Sprint input
+	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &ADeadHaulCharacter::StartSprint);
+	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &ADeadHaulCharacter::StopSprint);
 
 }
 
@@ -279,3 +285,74 @@ void ADeadHaulCharacter::StopCrouch()
 	bIsCrouching = false;
 	UnCrouch();
 }
+
+//----------------
+// SPRINT
+//----------------
+
+void ADeadHaulCharacter::StartSprint()
+{
+	// Only allow sprint if 
+	if (!bIsExhausted && !bIsCrouching)
+	{
+		bIsSprinting = true;
+		GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
+	}
+}
+
+void ADeadHaulCharacter::StopSprint()
+{
+	bIsSprinting = false;
+	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+}
+
+//----------------
+// STAMINA TICK
+//----------------
+
+void ADeadHaulCharacter::HandleStaminaTick(float DeltaTime)
+{
+	if (bIsSprinting && !bIsExhausted)
+	{
+		// Drain stamina while actively sprinting
+		CurrentStamina = FMath::Max(0.f, CurrentStamina - StaminaDrainRate * DeltaTime);
+
+		// Hit zero — trigger exhaustion
+		if (CurrentStamina <= 0.f)
+		{
+			bIsExhausted = true;
+			StopSprint();
+		}
+	}
+	else
+	{
+		// Regen stamina when not sprinting
+		CurrentStamina = FMath::Min(MaxStamina, CurrentStamina + StaminaRegenRate * DeltaTime);
+
+		// Count down exhaustion cooldown once stamina starts recovering
+		if (bIsExhausted)
+		{
+			ExhaustionTimer += DeltaTime;
+			if (ExhaustionTimer >= ExhaustionCooldown)
+			{
+				bIsExhausted = false;
+				ExhaustionTimer = 0.f;
+			}
+		}
+	}
+}
+
+//----------------
+// GETTERS
+//----------------
+
+float ADeadHaulCharacter::GetMaxStamina() const
+{
+	return MaxStamina;
+}
+
+bool ADeadHaulCharacter::GetIsExhausted() const
+{
+	return bIsExhausted;
+}
+
