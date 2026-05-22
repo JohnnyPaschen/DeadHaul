@@ -89,8 +89,3 @@ void ADeadHaulHUD::BeginPlay()
         }
     }
 }
-
-bool ADeadHaulCharacter::GetIsSprinting() const
-{
-    return bIsSprinting;
-}

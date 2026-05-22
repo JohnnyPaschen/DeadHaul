@@ -4,6 +4,7 @@
 #include "LevelGen/RoomBase.h"
 #include "DrawDebugHelpers.h"
 #include "LevelGen/RoomDataAsset.h"
+#include "LevelGen/PropSpawnPoint.h"
 #include "LevelGen/DoorConnector.h"
 
 // Sets default values
@@ -81,6 +82,17 @@ void ARoomBase::SealOpenDoors_Implementation()
 void ARoomBase::OnRoomPlaced_Implementation()
 {
     ApplyMaterials();
+
+    TArray<UPropSpawnPoint*> SpawnPoints;
+    GetComponents<UPropSpawnPoint>(SpawnPoints);
+
+    UE_LOG(LogTemp, Warning, TEXT("[RoomBase] OnRoomPlaced on %s — found %d PropSpawnPoints"),
+        *GetName(), SpawnPoints.Num());
+
+    for (UPropSpawnPoint* SP : SpawnPoints)
+    {
+        if (SP) SP->SpawnProp();
+    }
 }
 
 void ARoomBase::ApplyMaterials()
