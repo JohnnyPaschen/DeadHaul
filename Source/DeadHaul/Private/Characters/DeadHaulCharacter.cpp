@@ -30,8 +30,16 @@ ADeadHaulCharacter::ADeadHaulCharacter()
 
 	PlayerCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("PlayerCamera"));
 	PlayerCamera->SetupAttachment(RootComponent);
-	PlayerCamera->SetRelativeLocation(FVector(0.f, 0.f, 0.f));// positions camera at eye height
 	PlayerCamera->bUsePawnControlRotation = true; // camera follows controller look direction
+	PlayerCamera->SetRelativeLocation(FVector(20.f, 0.f, BaseEyeHeight));
+	BaseEyeHeight = 80.f;
+	CrouchedEyeHeight = 65.f;
+
+	ShadowMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("ShadowMesh"));
+	ShadowMesh->SetupAttachment(GetMesh());
+	ShadowMesh->SetHiddenInGame(true);
+	ShadowMesh->bCastHiddenShadow = true;
+	ShadowMesh->SetCastShadow(true);
 
 	//----------------
 	// INVENTORY
@@ -43,6 +51,30 @@ ADeadHaulCharacter::ADeadHaulCharacter()
 void ADeadHaulCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (GetMesh())
+	{
+		GetMesh()->HideBoneByName(FName("head"), EPhysBodyOp::PBO_None);
+		GetMesh()->HideBoneByName(FName("neck"), EPhysBodyOp::PBO_None);
+	}
+
+	if (ShadowMesh && GetMesh())
+	{
+		ShadowMesh->SetSkeletalMesh(GetMesh()->GetSkeletalMeshAsset());
+		ShadowMesh->SetAnimInstanceClass(GetMesh()->GetAnimClass());
+	}
+}
+
+void ADeadHaulCharacter::OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
+{
+	Super::OnStartCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
+	PlayerCamera->SetRelativeLocation(FVector(60.f, 0.f, CrouchedEyeHeight));
+}
+
+void ADeadHaulCharacter::OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
+{
+	Super::OnEndCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
+	PlayerCamera->SetRelativeLocation(FVector(20.f, 0.f, BaseEyeHeight));
 }
 
 // Called every frame
@@ -72,15 +104,6 @@ void ADeadHaulCharacter::Tick(float DeltaTime)
 	//FVector CurrentCameraLocation = PlayerCamera->GetRelativeLocation();
 	//float NewZ = FMath::FInterpTo(CurrentCameraLocation.Z, TargetCameraZ, DeltaTime, CrouchCameraInterpSpeed);
 	//PlayerCamera->SetRelativeLocation(FVector(15.f, 0.f, 80.f));
-
-	if (GetMesh())
-	{
-		PlayerCamera->AttachToComponent(GetMesh(),
-			FAttachmentTransformRules::SnapToTargetNotIncludingScale,
-			FName("Head"));
-		PlayerCamera->SetRelativeLocation(FVector(0.f, -10.f, 18.f));
-	}
-	
 }
 
 // Called to bind functionality to input

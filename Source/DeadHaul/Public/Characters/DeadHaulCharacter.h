@@ -128,6 +128,9 @@ protected:
 	// CROUCH
 	//----------------
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mesh")
+	USkeletalMeshComponent* ShadowMesh;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	float StandingCameraZ = 80.f;
 
@@ -139,6 +142,8 @@ protected:
 
 	void StartCrouch();
 	void StopCrouch();
+	virtual void OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
+	virtual void OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
 	bool bIsCrouching = false;
