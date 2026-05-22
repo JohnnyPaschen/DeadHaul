@@ -52,11 +52,14 @@ void ADeadHaulCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (GetMesh())
-	{
-		GetMesh()->HideBoneByName(FName("head"), EPhysBodyOp::PBO_None);
-		GetMesh()->HideBoneByName(FName("neck"), EPhysBodyOp::PBO_None);
-	}
+	//if (GetMesh())
+	//{
+	//	GetMesh()->HideBoneByName(FName("head"), EPhysBodyOp::PBO_None);
+	//	GetMesh()->HideBoneByName(FName("neck"), EPhysBodyOp::PBO_None);
+	//}
+
+	GetMesh()->SetOwnerNoSee(true);
+	GetMesh()->bCastHiddenShadow = true;
 
 	if (ShadowMesh && GetMesh())
 	{
@@ -379,3 +382,7 @@ bool ADeadHaulCharacter::GetIsExhausted() const
 	return bIsExhausted;
 }
 
+bool ADeadHaulCharacter::GetIsSprinting() const
+{
+	return bIsSprinting;
+}
